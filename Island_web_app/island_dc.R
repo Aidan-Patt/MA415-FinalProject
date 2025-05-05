@@ -10,7 +10,7 @@ library(tidyverse)
 
 
 ########
-source("my_functions.R")
+source("My_functions.R")
 
 # set up directory, make sure set directory to folder where you see
 # .gitignore, README, etc
@@ -39,6 +39,7 @@ all = list()
     all[[i]] = nicut(all[[i]])
   }
 
+## make note population count is  usually those 15 yrs or greater ##
 
 #### EDUCATION #####
 edu = all[[1]]
@@ -49,9 +50,56 @@ edu = all[[1]]
 
 edu = edu |> select(!Area_code &
                       !Highest_qualification_code &
-                      !Maori_ethnic_group_indicator_summary_code)
+                      !Maori_ethnic_group_indicator_summary_code) |>
+  rename(c("Highest Qualification" = `Highest_qualification_description`,
+           "Ethnicity" = `Maori_ethnic_group_indicator_summary_description`,
+           "Population Count" = `Census_usually_resident_population_count_aged_15_years_and_over`,
+           "Percentage of Maori who Obtained Qualifcation Level" = `Highest_qualification_by_Maori_ethnic_group_indicator_summary_percent`,
+           "Population Percent that Obtained Qualificaton Level" = `Highest_qualification_percent`))
+
+edu$`Population Percent that Obtained Qualificaton Level` = as.numeric(edu$`Population Percent that Obtained Qualificaton Level`)
+edu$`Population Count` = as.numeric(edu$`Population Count`)
+
 ## Focusing on Auckland
 edu_a = edu |> focR("Auckland Region")
+
+# Focus on total population education without differing maori or not
+tot_edu_a = edu_a |> filter(Ethnicity == "Total") |>
+  drop_one_val_col() |> filter(!`Highest Qualification` == "Total" &
+                                 !`Highest Qualification` == "Total stated")
+
+# Changing certificate values so can merge them together
+for(i in seq(1,length(tot_edu_a$Year))){
+  
+  # have all the certificateand diploma level 5 as certifications
+  if(grepl("certificate", tot_edu_a$`Highest Qualification`[i])|
+     grepl("5",tot_edu_a$`Highest Qualification`[i])){
+    tot_edu_a$`Highest Qualification`[i] = "Certifications"
+    
+  }
+    
+  # classigy bachelors and diploma level 6 as Bachelors or equivalent
+  if(grepl("6 diploma",tot_edu_a$`Highest Qualification`[i])|
+     grepl("Bach", tot_edu_a$`Highest Qualification`[i])){
+    tot_edu_a$`Highest Qualification`[i] = "Bachelors or equivalent"
+    
+  }
+     # Classify no qualification and not elseqhere include as other
+  if(grepl("No", tot_edu_a$`Highest Qualification`[i])){
+    tot_edu_a$`Highest Qualification`[i] = "Other"
+  }
+  
+     
+}
+
+
+test = tot_edu_a
+
+test = test |> group_by(`Year`, `Highest Qualification`) |>
+  summarise(across(c(`Population Count`, `Population Percent that Obtained Qualificaton Level`),
+                   sum))
+# library(esquisse)
+# esquisser(test)
 
 
 ### ETHNICITY ####
