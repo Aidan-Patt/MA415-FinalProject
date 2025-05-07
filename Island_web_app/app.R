@@ -41,23 +41,25 @@ ui <- fluidPage(
     #### MAP #####
     nav_panel("Map",
               "North Island Map",
-              
               leafletOutput("map")
-              
               ),
     
     
-    
-    ### Education ###3 
+    ### Education ####
     nav_panel("Education", 
-              "Education Statistics"
+              "Education Statistics",
+              selectInput("place", "Places", choices = edu$`Area_description`),
+              # take out island and oceanic bay
               
+              selectInput("measure",
+                          "Measures",
+                          choices = c("Percent", "Count")),
+              #actionButton("g", "Generate"),
               
-              
-              
+              plotOutput("edu_plot")
               ),
     
-    
+    #### #####
     
     nav_panel("Ethnicity", "Ethnicity Data"),
     nav_panel("Expats", "Information on Expats in North Island"),
@@ -97,6 +99,42 @@ server <- function(input, output) {
       setView(lng = 175.6024, lat = -38.15,   zoom = 6) %>%
       addMarkers(data = cities)
   })
+  
+  ##### Education #####
+  edu_select = reactive({edu |> filter(`Area_description` == input$place)})
+  
+    output$edu_plot = renderPlot({
+      if(input$measure == "Percent"){
+        edu_select() |> ggplot() +
+          aes( x = `Population Percent that Obtained Qualificaton Level`,
+               y = `Highest Qualification`,
+               colour = Year) +
+          geom_point() +
+          scale_color_gradient() +
+          labs(
+            x = "Percentage of Population",
+            title = "Education Obtained"
+          ) +
+          ggthemes::theme_gdocs()
+        
+      } else{
+        output$edu_plot = renderPlot({
+          edu_select() |> ggplot() +
+            aes( x = `Population Count`,
+                 y = `Highest Qualification`,
+                 colour = Year) +
+            geom_point() +
+            scale_color_gradient() +
+            labs(
+              x = "Population Count",
+              title = "Education Obtained"
+            ) +
+            ggthemes::theme_gdocs()
+        })
+      }
+    })
+
+  
 
 }
 

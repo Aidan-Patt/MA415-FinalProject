@@ -60,46 +60,44 @@ edu = edu |> select(!Area_code &
 edu$`Population Percent that Obtained Qualificaton Level` = as.numeric(edu$`Population Percent that Obtained Qualificaton Level`)
 edu$`Population Count` = as.numeric(edu$`Population Count`)
 
-## Focusing on Auckland
-edu_a = edu |> focR("Auckland Region")
-
-# Focus on total population education without differing maori or not
-tot_edu_a = edu_a |> filter(Ethnicity == "Total") |>
+# focus on population total, Maori and non Maori
+edu = edu |> filter(Ethnicity == "Total") |>
   drop_one_val_col() |> filter(!`Highest Qualification` == "Total" &
                                  !`Highest Qualification` == "Total stated")
 
 # Changing certificate values so can merge them together
-for(i in seq(1,length(tot_edu_a$Year))){
+for(i in seq(1,length(edu$Year))){
   
   # have all the certificateand diploma level 5 as certifications
-  if(grepl("certificate", tot_edu_a$`Highest Qualification`[i])|
-     grepl("5",tot_edu_a$`Highest Qualification`[i])){
-    tot_edu_a$`Highest Qualification`[i] = "Certifications"
+  if(grepl("certificate", edu$`Highest Qualification`[i])|
+     grepl("5",edu$`Highest Qualification`[i])){
+    edu$`Highest Qualification`[i] = "Certifications"
     
-  }
-    
-  # classigy bachelors and diploma level 6 as Bachelors or equivalent
-  if(grepl("6 diploma",tot_edu_a$`Highest Qualification`[i])|
-     grepl("Bach", tot_edu_a$`Highest Qualification`[i])){
-    tot_edu_a$`Highest Qualification`[i] = "Bachelors or equivalent"
-    
-  }
-     # Classify no qualification and not elseqhere include as other
-  if(grepl("No", tot_edu_a$`Highest Qualification`[i])){
-    tot_edu_a$`Highest Qualification`[i] = "Other"
   }
   
-     
+  # classigy bachelors and diploma level 6 as Bachelors or equivalent
+  if(grepl("6 diploma",edu$`Highest Qualification`[i])|
+     grepl("Bach", edu$`Highest Qualification`[i])){
+    edu$`Highest Qualification`[i] = "Bachelors or equivalent"
+    
+  }
+  # Classify no qualification and not elseqhere include as other
+  if(grepl("No", edu$`Highest Qualification`[i])){
+    edu$`Highest Qualification`[i] = "Other"
+  }
 }
 
-
-test = tot_edu_a
-
-test = test |> group_by(`Year`, `Highest Qualification`) |>
+## Group similar levels of education together
+edu = edu |> group_by(`Year`, `Area_description`, `Highest Qualification`) |>
   summarise(across(c(`Population Count`, `Population Percent that Obtained Qualificaton Level`),
                    sum))
-# library(esquisse)
-# esquisser(test)
+# 
+# ## Focusing on Auckland
+# edu_a = edu |> focR("Auckland Region")
+# edu_a$"Population Count"
+
+#library(esquisse)
+# esquisser(edu_a)
 
 
 ### ETHNICITY ####
@@ -109,14 +107,25 @@ ethnicity = all[[2]]
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
 
-ethnicity = ethnicity |> select(!Area_code &
-                                  !Ethnic_group_total_responses_code)
+ethnicity = ethnicity |> 
+  select(!Area_code & !Ethnic_group_total_responses_code &!Area_type) |>
+  rename(c("Population Count" = `Census_usually_resident_population_count`,
+           "Ethnic Group" = `Ethnic_group_total_responses_description`,
+           "Percent of Population" = `Ethnic_group_total_responses_percent`)) |>
+  filter(`Ethnic Group`!= "Total" & `Ethnic Group` != "Total stated" &
+           `Ethnic Group` != "Not elsewhere included")
+  
+ethnicity$`Population Count` = as.numeric(ethnicity$`Population Count`)
+ethnicity$`Percent of Population` = as.numeric(ethnicity$`Percent of Population`)
+
+# Making Count in the thousands
+ethnicity = ethnicity |> mutate(`Population Count` = `Population Count`/1000)
 
 ## Focusing on Auckland
   # getting rid of region/place columns bc only auckland
 eth_a = ethnicity |> focR("Auckland Region")
 
-
+# esquisser(eth_a)
     ### could probably go right to esquisse/ ggplot with this ####
 
 
@@ -127,11 +136,23 @@ expat = all[[3]]
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
 
-expat = expat |> select(!Area_code &
-                          !Years_since_arrival_in_New_Zealand_code)
+  # !Years_since_arrival_in_New_Zealand_code
+expat = expat |> 
+  select(!Area_code & !Area_type) |>
+  rename(c("Years since arrival" = `Years_since_arrival_in_New_Zealand_description`,
+           "Number Born Overseas" = `Overseas_born_census_usually_resident_population_count`,
+           "Percentage" = `Years_since_arrival_in_New_Zealand_percent`)) |>
+  filter(`Years since arrival` != "Total" & 
+           `Years since arrival` != "Total stated" &
+           `Years since arrival` != "Not elsewhere included")
+
+expat$`Number Born Overseas` = as.numeric(expat$`Number Born Overseas`)
+expat$`Percentage` = as.numeric(expat$`Percentage`)
 
 # focus on Auckland
 exp_a = expat |> focR("Auckland Region")
+
+# esquisser(exp_a)
 
 
 ##### HOUSING #####
@@ -159,13 +180,39 @@ income = all[[5]]
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
+
+#  !Total_personal_income_code &
 income = income |>
   select(!Area_code &
-           !Total_personal_income_code &
-           !Maori_ethnic_group_indicator_summary_code)
+           !Maori_ethnic_group_indicator_summary_code &
+           !Sex_code) |>
+  rename(c("Income" = `Total_personal_income_description`,
+           "Maori Ethnic Indicator" = `Maori_ethnic_group_indicator_summary_description`,
+           "Census" = `Census_usually_resident_population_count_aged_15_years_and_over`,
+           "Maori Percentage" = `Total_personal_income_by_Maori_ethnic_group_indicator_summary_percent`,
+           "Sex Percentage" = `Total_personal_income_by_sex_percent`))
+
+income$Census = as.numeric(income$Census)
+income$`Maori Percentage` = as.numeric(income$`Maori Percentage`)
+income$`Sex Percentage` = as.numeric(income$`Sex Percentage`)
+
+# Focusing on Total instead of Maori ethnicity or gender
+income = income |> filter(`Maori Ethnic Indicator` == "Total" &
+                            `Sex_description` == "Total") |>
+                  filter(`Income` != "Total" &
+                           `Income` != "Total stated" &
+                           `Income` != "Not stated") |>
+                  select(!`Sex Percentage` & !`Maori Percentage`) |>
+                  arrange(`Total_personal_income_code`)
+  
+  
+
 
 # Focusing on auckland
 income_a = income |> focR("Auckland Region")
+
+View(income_a)
+esquisser(income_a)
 
 #### JOB ####
 job = all[[6]]
