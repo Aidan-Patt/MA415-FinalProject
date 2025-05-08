@@ -48,8 +48,17 @@ ui <- fluidPage(
     ### Education ####
     nav_panel("Education", 
               "Education Statistics",
-              selectInput("place", "Places", choices = edu$`Area_description`),
-              # take out island and oceanic bay
+              
+              fluidRow(column(8,
+                              selectInput("place", "Places", choices = edu$`Area_description`),
+                              # take out island and oceanic bay
+                              ),
+                       column(4,
+                              selectInput("edu_year", "Year", choices = edu$`Year`)
+                              )
+                       
+              ),
+              tableOutput("edu_table"),
               
               plotOutput("edu_plot")
               ),
@@ -58,8 +67,17 @@ ui <- fluidPage(
     
     nav_panel("Ethnicity",
               "Ethnicity Data",
-              selectInput("eth_place", "Places",
-                          choices = ethnicity$`Area_description`),
+              
+              fluidRow(column(8,
+                              selectInput("eth_place", "Places",
+                                          choices = ethnicity$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("eth_year", "Year",
+                                          choices = ethnicity$`Year`)
+                              )
+                       ),
+              tableOutput("eth_table"),
               
               plotOutput("eth_plot")
               ),
@@ -67,11 +85,17 @@ ui <- fluidPage(
     #### Expat #####
     nav_panel("Expats", 
               "Information on Expats in North Island",
-              selectInput("exp_place", "Places",
-                          choices = expat$`Area_description`),
               
-              selectInput("exp_year", "Census Year",
-                          choices = expat$`Year`),
+              fluidRow(column(8,
+                              selectInput("exp_place", "Places",
+                                          choices = expat$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("exp_year", "Census Year",
+                                          choices = expat$`Year`),
+                              )
+                       ),
+              tableOutput("exp_table"),
               
               plotOutput("exp_plot")
               
@@ -81,8 +105,18 @@ ui <- fluidPage(
     #### Housing #####
     nav_panel("Housing",
               "Examining Housing Data",
-              selectInput("house_place", "Places", 
-                          choices = house$`Area_description`),
+              
+              fluidRow(column(8,
+                              selectInput("house_place", "Places", 
+                                          choices = house$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("house_year", "Year",
+                                          choices = house$`Year`)
+                              )
+                       ),
+              
+              tableOutput("house_table"),
               
               plotOutput("house_plot")
               
@@ -94,8 +128,13 @@ ui <- fluidPage(
     nav_panel("Income", 
               "How much are people making?",
               
-              selectInput("inc_place", "Places",
-                          choices = income$`Area_description`),
+              fluidRow(column(8,
+                              selectInput("inc_place", "Places",
+                                          choices = income$`Area_description`)
+                              )
+
+                       ),
+              tableOutput("inc_table"),
               
               plotOutput("inc_plot")
               ),
@@ -103,8 +142,18 @@ ui <- fluidPage(
     nav_panel("Jobs", 
               "What is the work life",
               
-              selectInput("job_place", "Places",
-                          choices = job$`Area_description`),
+              fluidRow(column(8,
+                              selectInput("job_place", "Places",
+                                          choices = job$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("job_year", "Year",
+                                          choices = job$`Year`)
+                              )
+                
+              ),
+              
+              tableOutput("job_table"),
               
               plotOutput("job_plot")
               ),
@@ -112,8 +161,18 @@ ui <- fluidPage(
     ##### Maori #####
     nav_panel("Maori", 
               "The Indigenous People of North Island",
-              selectInput("maori_place", "Places",
-                          choices = maori$`Area_description`),
+              
+              fluidRow(column(8,
+                              selectInput("maori_place", "Places",
+                                          choices = maori$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("maori_year", "Year",
+                                          choices = maori$`Year`)
+                              )
+                       ),
+              
+              tableOutput("maori_table"),
               
               plotOutput("maori_plot")
               ),
@@ -122,8 +181,16 @@ ui <- fluidPage(
     nav_panel("Religion",
               'What do people believe in?',
               
-              selectInput("rel_place", "Places",
-                          choices = religion$`Area_description`),
+              fluidRow(column(8,
+                              selectInput("rel_place", "Places",
+                                          choices = religion$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("rel_year", "Year",
+                                          choices = religion$`Year`)
+                              )
+                       ),
+              tableOutput("rel_table"),
               
               plotOutput("rel_plot")
               ),
@@ -133,8 +200,16 @@ ui <- fluidPage(
     nav_panel("Smoking", 
               "How prevalent is smoking?",
               
-              selectInput("smoking_place", "Places",
-                          choices = smoking$`Area_description`),
+              fluidRow(column(8,
+                              selectInput("smoking_place", "Places",
+                                          choices = smoking$`Area_description`)
+                              ),
+                       column(4,
+                              selectInput("smoking_year", "Year",
+                                          choices = smoking$`Year`)
+                              )
+                       ),
+              tableOutput("smoking_table"),
               
               plotOutput("smoking_plot")
               
@@ -144,8 +219,12 @@ ui <- fluidPage(
     nav_panel("Transportation",
               "Getting from point A to B",
               
-              selectInput("tran_place", "Places",
-                          choices = transport$Area_description),
+              fluidRow(column(8,
+                              selectInput("tran_place", "Places",
+                                          choices = transport$Area_description)
+                              )
+                       ),
+              tableOutput("tran_table"),
               
               plotOutput("tran_plot")
 
@@ -182,7 +261,11 @@ server <- function(input, output) {
   
   ##### EDUCATION #####
   edu_select = reactive({edu |> 
-        filter(`Area_description` == input$place) }) 
+        focR(input$place) })
+  
+  output$edu_table = renderTable({
+    edu_select() |> filter(`Year` == input$edu_year)
+  })
   
   output$edu_plot = renderPlot({
         edu_select() |> ggplot() +
@@ -202,7 +285,12 @@ server <- function(input, output) {
   eth_select = reactive({ ethnicity |>
       filter(`Area_description` == input$eth_place)})
   
+  output$eth_table = renderTable({
+    eth_select() |> filter(`Year` == input$eth_year)
+  })
+  
   output$eth_plot = renderPlot({
+    options(scipen=10000)
     eth_select() |> ggplot() +
       aes(
         x = Year,
@@ -232,6 +320,11 @@ server <- function(input, output) {
   exp_select = reactive({ expat |>
       filter(`Area_description` == input$exp_place &
                `Year` == input$exp_year)
+  })
+  
+  output$exp_table = renderTable({
+    exp_select() |> filter(`Year` == input$exp_year) |>
+      select(!`Years_since_arrival_in_New_Zealand_code`)
   })
   
   output$exp_plot = renderPlot({
@@ -264,6 +357,9 @@ server <- function(input, output) {
   house_select = reactive({ house |>
       filter(`Area_description` == input$house_place) })
   
+  output$house_table = renderTable({ house_select() |>
+      filter(`Year` == input$house_year)})
+  
   output$house_plot = renderPlot({
     house_select() |>
       ggplot() +
@@ -292,6 +388,10 @@ server <- function(input, output) {
   inc_select = reactive({ income |>
       filter(`Area_description` == input$inc_place) })
   
+  output$inc_table = renderTable({
+    inc_select() |> select(!`Total_personal_income_code`)
+  })
+  
   output$inc_plot = renderPlot({
     options(scipen=10000)
     inc_select() |>
@@ -311,11 +411,17 @@ server <- function(input, output) {
         axis.title.y = element_text(size = 25L),
         axis.title.x = element_text(size = 25L)
       )
+    
+
   })
   
   ##### JOB #####
   job_select = reactive({job|>
       filter(`Area_description` == input$job_place) })
+  
+  output$job_table = renderTable({ job_select() |>
+      filter(`Year` == input$job_year)
+  })
   
   output$job_plot = renderPlot({
     job_select() |>
@@ -341,13 +447,17 @@ server <- function(input, output) {
   maori_select = reactive({ maori |>
       filter(`Area_description` == input$maori_place) })
   
+  output$maori_table = renderTable({ maori_select() |>
+      filter(`Year` == input$maori_year)
+  })
+  
   output$maori_plot = renderPlot({
     maori_select() |>
       ggplot() +
       aes(
         x = Year,
         y = Census,
-        colour = Maori_ethnic_group_indicator_summary_description
+        colour = `Maori Ethnicity`
       ) +
       geom_smooth(se = TRUE) +
       scale_color_brewer(palette = "Set2", direction = 1) +
@@ -368,6 +478,10 @@ server <- function(input, output) {
   ##### RELIGION #####
   rel_select = reactive({ religion |>
       filter(`Area_description` == input$rel_place) })
+  
+  output$rel_table = renderTable({ rel_select()|>
+      filter(`Year` == input$rel_year)
+  })
   
   output$rel_plot = renderPlot({
     rel_select() |>
@@ -400,6 +514,9 @@ server <- function(input, output) {
   smoking_select = reactive({ smoking |>
       filter(`Area_description` == input$smoking_place) })
   
+  output$smoking_table = renderTable({ smoking_select() |>
+      filter(`Year` == input$smoking_year) })
+  
   output$smoking_plot = renderPlot({
     smoking_select() |>
       ggplot() +
@@ -426,6 +543,10 @@ server <- function(input, output) {
   ##### TRANSPORTATION #####
   tran_select = reactive({ transport |>
       filter(`Area_description` == input$tran_place) })
+  
+  output$tran_table = renderTable({
+    tran_select()
+  })
   
   output$tran_plot = renderPlot({
     tran_select() |>

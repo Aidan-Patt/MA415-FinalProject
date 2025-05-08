@@ -59,7 +59,8 @@ edu = edu |> select(!Area_code &
            "Population Percent that Obtained Qualificaton Level" = `Highest_qualification_percent`))
 
 edu$`Population Percent that Obtained Qualificaton Level` = as.numeric(edu$`Population Percent that Obtained Qualificaton Level`)
-edu$`Population Count` = as.numeric(edu$`Population Count`)
+edu$`Population Count` = as.integer(edu$`Population Count`)
+edu$`Year` = as.integer(edu$`Year`)
 
 # focus on population total, Maori and non Maori
 edu = edu |> filter(Ethnicity == "Total") |>
@@ -116,11 +117,12 @@ ethnicity = ethnicity |>
   filter(`Ethnic Group`!= "Total" & `Ethnic Group` != "Total stated" &
            `Ethnic Group` != "Not elsewhere included")
   
-ethnicity$`Population Count` = as.numeric(ethnicity$`Population Count`)
+ethnicity$`Population Count` = as.integer(ethnicity$`Population Count`)
 ethnicity$`Percent of Population` = as.numeric(ethnicity$`Percent of Population`)
+ethnicity$`Year` = as.integer(ethnicity$`Year`)
 
 # Making Count in the thousands
-ethnicity = ethnicity |> mutate(`Population Count` = `Population Count`/1000)
+# ethnicity = ethnicity |> mutate(`Population Count` = `Population Count`/1000)
 
 
 ### EXPAT ####
@@ -140,14 +142,10 @@ expat = expat |>
            `Years since arrival` != "Total stated" &
            `Years since arrival` != "Not elsewhere included")
 
-expat$`Number Born Overseas` = as.numeric(expat$`Number Born Overseas`)
+expat$`Number Born Overseas` = as.integer(expat$`Number Born Overseas`)
 expat$`Percentage` = as.numeric(expat$`Percentage`)
 expat$`Years_since_arrival_in_New_Zealand_code` = as.numeric(expat$Years_since_arrival_in_New_Zealand_code)
-
-test = expat |> group_by(`Years_since_arrival_in_New_Zealand_code`,
-                         `Years since arrival`) |> arrange(`Years_since_arrival_in_New_Zealand_code`)
-# focus on Auckland
-# exp_a = test |> focR("Auckland Region") |> filter(`Year` == 2018)
+expat$`Year` = as.integer(expat$`Year`)
 
 
 
@@ -170,8 +168,9 @@ house = house |>
            !`Tenure Type` == "Total stated" )
 
 # changing the values to numbers
-house$`Number of Households` = as.numeric(house$`Number of Households`)
+house$`Number of Households` = as.integer(house$`Number of Households`)
 house$Percent = as.numeric(house$Percent)
+house$`Year` = as.integer(house$`Year`)
 
 ## Auckland focus
 # house_a = house |> focR("Auckland Region")
@@ -196,10 +195,12 @@ income = income |>
            "Maori Percentage" = `Total_personal_income_by_Maori_ethnic_group_indicator_summary_percent`,
            "Sex Percentage" = `Total_personal_income_by_sex_percent`))
 
-income$Census = as.numeric(income$Census)
+income$Census = as.integer(income$Census)
 income$`Maori Percentage` = as.numeric(income$`Maori Percentage`)
 income$`Sex Percentage` = as.numeric(income$`Sex Percentage`)
-income$Total_personal_income_code = as.numeric(income$Total_personal_income_code)
+income$`Total_personal_income_code` = as.numeric(income$`Total_personal_income_code`)
+income$`Year` = as.integer(income$`Year`)
+
 
 # Focusing on Total instead of Maori ethnicity or gender
 income = income |> filter(`Maori Ethnic Indicator` == "Total" &
@@ -210,8 +211,8 @@ income = income |> filter(`Maori Ethnic Indicator` == "Total" &
                   select(!`Sex Percentage` & !`Maori Percentage`
                          & !`Maori Ethnic Indicator` &
                            !`Sex_description`)
-income = income |> group_by(`Total_personal_income_code`, `Income`) |>
-  arrange(`Total_personal_income_code`)
+# income = income |> group_by(`Total_personal_income_code`, `Income`) |>
+  #arrange(`Total_personal_income_code`)
 
 
 
@@ -226,23 +227,24 @@ job = all[[6]]
 job = job |>
   select(!Area_code &
            !Work_and_labour_force_status_code &
-           !Maori_ethnic_group_indicator_summary_code) |>
+           !Maori_ethnic_group_indicator_summary_code&
+           !Area_type) |>
   rename(c("Census" = 
              `Census_usually_resident_population_count_aged_15_years_and_over`,
            "Job Status Description" =
-             `Work_and_labour_force_status_description`
-             )) |>
+             `Work_and_labour_force_status_description`,
+           "Percent" = `Work_and_labour_force_status_percent`)) |>
   filter(`Maori_ethnic_group_indicator_summary_description` == "Total" &
            !`Job Status Description` == "Total" &
-           !`Job Status Description` == "Total stated")
+           !`Job Status Description` == "Total stated" &
+           !`Job Status Description` == "Work and labour force status unidentifiable") |>
+  select(!`Maori_ethnic_group_indicator_summary_description` &
+           ! `Work_and_labour_force_status_by_Maori_ethnic_group_indicator_summary_percent`)
 
 # making numeric columns numeric
-job$`Census` = as.numeric(job$`Census`)
-job$`Work_and_labour_force_status_percent` = as.numeric(job$`Work_and_labour_force_status_percent`)
-
-# Auckland focus
-# job_a = job |> focR("Auckland Region")
-
+job$`Census` = as.integer(job$`Census`)
+job$`Percent` = as.numeric(job$`Percent`)
+job$`Year` = as.integer(job$`Year`)
 
 
 
@@ -256,11 +258,12 @@ maori = maori |>
   select(!Area_code &
           !Maori_ethnic_group_indicator_summary_code &
          !Area_type)|>
-  rename(c("Census" = `Census_usually_resident_population_count`))
+  rename(c("Census" = `Census_usually_resident_population_count`,
+           "Maori Ethnicity" = `Maori_ethnic_group_indicator_summary_description`))
 
-# making columns taht should be numeric
-maori$`Census` = as.numeric(maori$`Census`)
-
+# making columns that should be integers into integers
+maori$`Census` = as.integer(maori$`Census`)
+maori$`Year` = as.integer(maori$`Year`)
 
 ## Focus Auckland
 # maori_a = maori |> focR("Auckland Region")
@@ -286,8 +289,10 @@ religion = religion |>
            !`Religion` == "Not elsewhere included" &
            !`Religion` == "Object to answering")
 
-religion$`Census` = as.numeric(religion$`Census`)
+religion$`Census` = as.integer(religion$`Census`)
 religion$`Percent` = as.numeric(religion$`Percent`)
+religion$`Year` = as.integer(religion$`Year`)
+
 # Focus Auckland
 # religion_a = religion |> focR("Auckland Region")
 
@@ -313,13 +318,16 @@ smoking = smoking |>
   filter(`Ethnic Group` == "Total stated")
 
 # making number columns numeric
-smoking$`Census` = as.numeric(smoking$`Census`)
+smoking$`Census` = as.integer(smoking$`Census`)
 smoking$`Percent` = as.numeric(smoking$`Percent`)
+smoking$`Year` = as.integer(smoking$`Year`)
 
-
-smoking = smoking |> filter(!`Cigarette Smoking Behavior` == "Total" &
-                              !`Cigarette Smoking Behavior` == "Total stated" &
-                              !`Cigarette Smoking Behavior` == "Not elsewhere included")
+smoking = smoking |> 
+  filter(!`Cigarette Smoking Behavior` == "Total" &
+           !`Cigarette Smoking Behavior` == "Total stated" &
+           !`Cigarette Smoking Behavior` == "Not elsewhere included") |>
+  select(!`Ethnic Group`)
+  
 
 
 #### TRANSPORTATION ####
@@ -339,10 +347,9 @@ transport = transport |>
            !`Means of Transport` == "Total stated" &
            !`Means of Transport` == "Not elsewhere included")
 
-transport$`Census` = as.numeric(transport$`Census`)
+transport$`Census` = as.integer(transport$`Census`)
 transport$`Percent` = as.numeric(transport$`Percent`)
+transport$`Year` = as.integer(transport$`Year`)
 
-# Focus on Auckland only 2018
-#transport_a = transport |> focR("Auckland Region")
 
 
