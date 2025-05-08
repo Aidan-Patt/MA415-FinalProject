@@ -7,7 +7,8 @@ library(dplyr)
 library(readr)
 library(vroom)
 library(tidyverse)
-
+library(esquisse)
+#####
 
 ########
 source("My_functions.R")
@@ -91,17 +92,17 @@ for(i in seq(1,length(edu$Year))){
 edu = edu |> group_by(`Year`, `Area_description`, `Highest Qualification`) |>
   summarise(across(c(`Population Count`, `Population Percent that Obtained Qualificaton Level`),
                    sum))
-# 
-# ## Focusing on Auckland
-# edu_a = edu |> focR("Auckland Region")
-# edu_a$"Population Count"
 
-#library(esquisse)
-# esquisser(edu_a)
+edu = edu |> filter(!`Area_description` == "Oceanic Bay of Plenty Region" &
+                      !`Area_description` == "Islands Bay of Plenty Region" &
+                      !`Highest Qualification` == "Other")
+  
 
 
 ### ETHNICITY ####
 ethnicity = all[[2]]
+
+
 
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
@@ -120,13 +121,6 @@ ethnicity$`Percent of Population` = as.numeric(ethnicity$`Percent of Population`
 
 # Making Count in the thousands
 ethnicity = ethnicity |> mutate(`Population Count` = `Population Count`/1000)
-
-## Focusing on Auckland
-  # getting rid of region/place columns bc only auckland
-eth_a = ethnicity |> focR("Auckland Region")
-
-# esquisser(eth_a)
-    ### could probably go right to esquisse/ ggplot with this ####
 
 
 ### EXPAT ####
@@ -148,11 +142,13 @@ expat = expat |>
 
 expat$`Number Born Overseas` = as.numeric(expat$`Number Born Overseas`)
 expat$`Percentage` = as.numeric(expat$`Percentage`)
+expat$`Years_since_arrival_in_New_Zealand_code` = as.numeric(expat$Years_since_arrival_in_New_Zealand_code)
 
+test = expat |> group_by(`Years_since_arrival_in_New_Zealand_code`,
+                         `Years since arrival`) |> arrange(`Years_since_arrival_in_New_Zealand_code`)
 # focus on Auckland
-exp_a = expat |> focR("Auckland Region")
+# exp_a = test |> focR("Auckland Region") |> filter(`Year` == 2018)
 
-# esquisser(exp_a)
 
 
 ##### HOUSING #####
@@ -161,18 +157,25 @@ house = all[[4]]
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
+# making better column names, and filtering out redundant rows
 
 house = house |> 
   select(!Area_code &
-        !Tenure_of_household_code)|> 
-  rename(c("Occupation Type" = `Tenure_of_household_description`,
+        !Tenure_of_household_code &
+          !Area_type)|> 
+  rename(c("Tenure Type" = `Tenure_of_household_description`,
             "Number of Households" = `Households_in_occupied_private_dwellings`,
-           "Percent" = `Tenure_of_household_percent`))
+           "Percent" = `Tenure_of_household_percent`)) |>
+  filter(!`Tenure Type` == "Total" & 
+           !`Tenure Type` == "Total stated" )
+
+# changing the values to numbers
+house$`Number of Households` = as.numeric(house$`Number of Households`)
+house$Percent = as.numeric(house$Percent)
 
 ## Auckland focus
-house_a = house |> focR("Auckland Region")
+# house_a = house |> focR("Auckland Region")
   
-
 
 ##### INCOME ####
 income = all[[5]]
@@ -185,7 +188,8 @@ income = all[[5]]
 income = income |>
   select(!Area_code &
            !Maori_ethnic_group_indicator_summary_code &
-           !Sex_code) |>
+           !Sex_code &
+         !Area_type) |>
   rename(c("Income" = `Total_personal_income_description`,
            "Maori Ethnic Indicator" = `Maori_ethnic_group_indicator_summary_description`,
            "Census" = `Census_usually_resident_population_count_aged_15_years_and_over`,
@@ -195,6 +199,7 @@ income = income |>
 income$Census = as.numeric(income$Census)
 income$`Maori Percentage` = as.numeric(income$`Maori Percentage`)
 income$`Sex Percentage` = as.numeric(income$`Sex Percentage`)
+income$Total_personal_income_code = as.numeric(income$Total_personal_income_code)
 
 # Focusing on Total instead of Maori ethnicity or gender
 income = income |> filter(`Maori Ethnic Indicator` == "Total" &
@@ -202,17 +207,14 @@ income = income |> filter(`Maori Ethnic Indicator` == "Total" &
                   filter(`Income` != "Total" &
                            `Income` != "Total stated" &
                            `Income` != "Not stated") |>
-                  select(!`Sex Percentage` & !`Maori Percentage`) |>
-                  arrange(`Total_personal_income_code`)
-  
-  
+                  select(!`Sex Percentage` & !`Maori Percentage`
+                         & !`Maori Ethnic Indicator` &
+                           !`Sex_description`)
+income = income |> group_by(`Total_personal_income_code`, `Income`) |>
+  arrange(`Total_personal_income_code`)
 
 
-# Focusing on auckland
-income_a = income |> focR("Auckland Region")
 
-View(income_a)
-esquisser(income_a)
 
 #### JOB ####
 job = all[[6]]
@@ -220,15 +222,28 @@ job = all[[6]]
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
+# renaming columns to more succint names and filtering redundants rows
 job = job |>
   select(!Area_code &
            !Work_and_labour_force_status_code &
            !Maori_ethnic_group_indicator_summary_code) |>
-  rename(c("Census(usually pop count age >= 15 yrs)" = 
-             `Census_usually_resident_population_count_aged_15_years_and_over`))
+  rename(c("Census" = 
+             `Census_usually_resident_population_count_aged_15_years_and_over`,
+           "Job Status Description" =
+             `Work_and_labour_force_status_description`
+             )) |>
+  filter(`Maori_ethnic_group_indicator_summary_description` == "Total" &
+           !`Job Status Description` == "Total" &
+           !`Job Status Description` == "Total stated")
+
+# making numeric columns numeric
+job$`Census` = as.numeric(job$`Census`)
+job$`Work_and_labour_force_status_percent` = as.numeric(job$`Work_and_labour_force_status_percent`)
 
 # Auckland focus
-job_a = job |> focR("Auckland Region")
+# job_a = job |> focR("Auckland Region")
+
+
 
 
 ###### MAORI #####
@@ -239,10 +254,16 @@ maori = all[[7]]
   #e.g area code removed but keeping region name
 maori = maori |>
   select(!Area_code &
-          !Maori_ethnic_group_indicator_summary_code)
+          !Maori_ethnic_group_indicator_summary_code &
+         !Area_type)|>
+  rename(c("Census" = `Census_usually_resident_population_count`))
+
+# making columns taht should be numeric
+maori$`Census` = as.numeric(maori$`Census`)
+
 
 ## Focus Auckland
-maori_a = maori |> focR("Auckland Region")
+# maori_a = maori |> focR("Auckland Region")
 
 
 #### RELIGION ####
@@ -251,12 +272,25 @@ religion = all[[8]]
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
+# renaming columns to more succint names, and getting rid of rendundant rows
 religion = religion |>
   select(!Area_code &
-           !Religious_affiliation_total_responses_code)
+           !Religious_affiliation_total_responses_code &
+           !Area_type) |>
+  rename(c("Religion" = `Religious_affiliation_total_responses_description`,
+           "Census" = `Census_usually_resident_population_count`,
+           "Percent" = Religious_affiliation_total_responses_percent)) |>
+  filter(!`Religion` == "Total" & !`Religion`== "Total stated" &
+           !`Religion` == "Spiritualism and New Age religions" &
+           !`Religion` == "Other religions, beliefs, and philosophies" &
+           !`Religion` == "Not elsewhere included" &
+           !`Religion` == "Object to answering")
 
+religion$`Census` = as.numeric(religion$`Census`)
+religion$`Percent` = as.numeric(religion$`Percent`)
 # Focus Auckland
-religion_a = religion |> focR("Auckland Region")
+# religion_a = religion |> focR("Auckland Region")
+
 
 #### SMOKING #####
 smoking = all[[9]]
@@ -264,13 +298,28 @@ smoking = all[[9]]
 ##  removing code columns that are redundant
   # bc they are explained by more intuitive columns with same data 
   #e.g area code removed but keeping region name
+# rename to more succinct columns and filter unnecessary rows of data
+  # want to examine all smoking behavior not interested in smoking behavior by
+  # ethnic demographic
 smoking = smoking |>
   select(!Area_code &
            !Cigarette_smoking_behaviour_code &
-           !Ethnic_group_total_responses_code)
+           !Ethnic_group_total_responses_code &
+           !Area_type) |>
+  rename(c("Cigarette Smoking Behavior" = `Cigarette_smoking_behaviour_description`,
+           "Ethnic Group" = `Ethnic_group_total_responses_description`,
+           "Census" = `Census_usually_resident_population_count_aged_15_years_and_over`,
+           "Percent" = `Cigarette_smoking_behaviour_percent`)) |>
+  filter(`Ethnic Group` == "Total stated")
 
-# Focus on Auckland
-smoking_a = smoking |> focR("Auckland Region")
+# making number columns numeric
+smoking$`Census` = as.numeric(smoking$`Census`)
+smoking$`Percent` = as.numeric(smoking$`Percent`)
+
+
+smoking = smoking |> filter(!`Cigarette Smoking Behavior` == "Total" &
+                              !`Cigarette Smoking Behavior` == "Total stated" &
+                              !`Cigarette Smoking Behavior` == "Not elsewhere included")
 
 
 #### TRANSPORTATION ####
@@ -281,7 +330,19 @@ transport = all[[10]]
   #e.g area code removed but keeping region name
 transport = transport |>
   select(!Area_code &
-           !Main_means_of_travel_to_education_code)
+           !Main_means_of_travel_to_education_code &
+           !Area_type) |>
+  rename(c("Means of Transport" = `Main_means_of_travel_to_education_description`,
+           "Census" = `Census_usually_resident_population_count_participating_in_study`,
+           "Percent" = `Main_means_of_travel_to_education_percent`)) |>
+  filter(!`Means of Transport` == "Total" &
+           !`Means of Transport` == "Total stated" &
+           !`Means of Transport` == "Not elsewhere included")
+
+transport$`Census` = as.numeric(transport$`Census`)
+transport$`Percent` = as.numeric(transport$`Percent`)
 
 # Focus on Auckland only 2018
-transport_a = transport |> focR("Auckland Region")
+#transport_a = transport |> focR("Auckland Region")
+
+

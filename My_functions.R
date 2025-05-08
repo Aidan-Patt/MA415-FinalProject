@@ -49,7 +49,8 @@ nicut = function(x){
                     Area_description == "Auckland Region" |
                     Area_description == "Coromandel" |
                     grepl("Bay of Plenty", x$Area_description) |
-                    Area_description == "Gisborne Region" |
+                    Area_description == "Gisborne Region" | 
+                    grepl("Waikato Region",x$Area_description) |
                     Area_description == "Lake Taupo Bays" |
                     Area_description == "Hawke's Bay Region" |
                     Area_description == "Manawatu-Wanganui Region" |
