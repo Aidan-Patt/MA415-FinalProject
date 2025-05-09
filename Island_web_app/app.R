@@ -407,7 +407,8 @@ ui <- page_fluid(
       nav_panel("Citations",
               h2("References",
               style = "margin-top: 10px; text-align-left; font-style: bold; font-size: 40px; margin-bottom: 25px"),
-              
+              p("This web app was put together by Aidan Patt, using the following resources.",
+                style = "margin-top:20px; margin-bottom:30px"),
               p("For coding:",
                 style = "font-style: bold; font-size: 17px"),
               a("stackoverflow", href = "https://stackoverflow.com/questions/74334647/how-to-adjust-line-spacing-in-r-shiny"),
