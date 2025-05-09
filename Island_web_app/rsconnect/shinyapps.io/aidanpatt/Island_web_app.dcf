@@ -1,0 +1,12 @@
+name: Island_web_app
+title: Island_web_app
+username: aidanpatt
+account: aidanpatt
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 14722431
+bundleId: 10257919
+url: https://aidanpatt.shinyapps.io/Island_web_app/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
