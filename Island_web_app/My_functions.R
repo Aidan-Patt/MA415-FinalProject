@@ -55,7 +55,8 @@ nicut = function(x){
                     Area_description == "Hawke's Bay Region" |
                     Area_description == "Manawatu-Wanganui Region" |
                     Area_description == "Wellington Region"|
-                    Area_description == "South Wairarapa District")
+                    Area_description == "South Wairarapa District") |>
+    filter(Area_description!= "Oceanic Bay of Plenty Region")
   
 }
 

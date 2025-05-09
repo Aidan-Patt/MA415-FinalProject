@@ -5,22 +5,25 @@
 
 
 library(shiny)
+library(shinydashboard)
 library(bslib)
 library(ggplot2)
 library(leaflet)
+#library(bsicons)
 
-source("island_dc.R")
+# source("island_dc.R")
 
-
+# ui <- fluidPage( 
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- page_fluid(
 
   
   navset_pill_list(
     
     #### INTRO ####
     nav_panel("Intro", 
-              "North Island of New Zealand Introduction",
+              h2("Introduction to the North Island of New Zealand",
+                 style = "text-align: center; font-style: bold; font-size: 35px"),
               tags$figure(
                 class = "centerFigure",
                 tags$img(
@@ -29,9 +32,12 @@ ui <- fluidPage(
                   alt = "Auckland City"
                 ),
                 tags$figcaption("Image of Auckland City New Zealand by sxbaird, 2017")
-              )
+              ),
+              hr(style = "border-top: 3px solid black; width: 80%;margin-top:15px;margin-bottom:20px"),
               
-              
+              p("New Zealand has two main islands, the North and the South Islands respectively, however there are many other islands that are a part of New Zealand. The North Island or Te Ika-a-Maui is the smaller of the main two, but is still the 14th largest island in the world. It is the most populated island in New Zealand, being home to about 77% of all people who live in New Zealand.",
+                style = "margin-bottom:50px")
+
               ),
     
     
@@ -40,14 +46,43 @@ ui <- fluidPage(
     
     #### MAP #####
     nav_panel("Map",
-              "North Island Map",
-              leafletOutput("map")
+              h2("Map of North Island",
+                 style = "text-align: center; font-style: bold; font-size: 40px"),
+              leafletOutput("map"),
+              hr(style = "border-top: 3px solid black; width: 80%;margin-top:15px;margin-bottom:30px"),
+              p("North Island has many cities, and places to live. Three of the largest cities are Auckland, Hamilton(within the Waikato region), and Wellington."),
+              p("Auckland city: From 2006-2008 Auckland was ranked as the 5th in the world for cities with the best quality of life. Within the city that are over 50 volcanoes, that contribute to its beautiful landscapes. Interestingly, Auckland used to be the capital of New Zealand for 25 years, but in 1865 it lost that role because the journey from South Island took too long."),
+              p("Wellington: Is the capital of New Zealand, gaining the title after Auckland lost it; making it the southernmost capital in the world. A few decades later the parliament in Wellington, passed 'Electoral Act of 1893' which made it the first country in the world to give women the right to vote. While it's not number five, Wellington was voted as the 13th best city to live in with high quality of life. A funny fact is that it is beleived that the capital building, 'The Beehive', was intially designed on the back of a napkin as a joke, and the designer never thought it would be built."),
+              
+              tags$figure(
+                class = "centerFigure",
+                tags$img(
+                  src = "Beehive.jpg",
+                  width = 600,
+                  alt = "Beehive Parliament Building"
+                ),
+                tags$figcaption("Image of Beehive Parliament Building in Wellington, New Zealand by gettyimages, 2021")
+              ),
+              hr(style = "border-top: 0.5px solid black; width: 1%;margin-top:20px;margin-bottom:20px"),
+              
+              
+              p("Hamilton: Is the seventh largest city in New Zealand. Its Maori name is Kirikiriroa, which means long stretch of gravel, and New Zealands longest river, the Waikato flows 16 km through the cities.",
+                style = "bottom-margin: 20px"),
+              hr(style = "text-align:center; border-top: 1px solid black; width: 95%;margin-top:30px;margin-bottom:30px")
+              
+              
               ),
     
     
     ### Education ####
     nav_panel("Education", 
-              "Education Statistics",
+              h2("Education Information",
+                    style = "text-align: center; font-style: bold; font-size: 40px"),
+              
+              p("New Zealand as a whole is ranked 7th in the world for its education system. School is mandatory from ages 6 through 16, and public schools are well funded. The majority of classes are taught in English however there are public schools where te reo Māori is used to teach and the curriculum has more of a foundation on Māori culture. There is outdoor education, usually in Yeaers 5,6,7,8,9, and 10 the students will spend a few nights camping outdoors with their peers building resourcefulness and other useful skills.",
+                style = "margin-top: 20px; margin-bottom: 30px"),
+              p("Below are ways of selecting various regions in the North Island to examine the education levels over time. The table allows you to look at the values for one year at a time, while the plot shows how things have changed over time.",
+                style = "margin-bottom:30px"),
               
               fluidRow(column(8,
                               selectInput("place", "Places", choices = edu$`Area_description`),
@@ -60,187 +95,319 @@ ui <- fluidPage(
               ),
               tableOutput("edu_table"),
               
-              plotOutput("edu_plot")
+              plotOutput("edu_plot"),
+              hr(style = "text-align:center; border-top: 1px solid black; width: 95%;margin-top:30px;margin-bottom:30px")
+    ),
+    
+    #### Culture (ethnicity, expat, & maori) #####
+    
+    nav_panel("Culture, Diversity, & Immigration",
+              
+              tabBox(
+                id = "tabset1", height = "550px", width = NULL,
+                
+                tabPanel("Information",
+                         h2("Culture",
+                            style = "text-align: left; font-style: bold; font-size: 40px"),
+                         p("The North Island of New Zealand is home to people from many different cultural backgrounds. The Māori people are the indigenous Polynesian people of the country, however they are only the second largest ethnic group in the country as you will be able to see with the graphs and plots in the other tabs. Additionally, New Zealand is considered the 14th safest country for expatriates.",
+                           style = "margin-top: 30px; margin-bottom: 30px"),
+                         
+                         tags$figure(
+                           class = "centerFigure",
+                           tags$img(
+                             src = "Maori.jpg",
+                             width = 600,
+                             alt = "Maori Culture and Hospitality"
+                           ),
+                           tags$figcaption("Te Puia Maori Rotorua by Fraser Clements")
+                         ),
+                         hr(style = "border-top: 1px solid black; width: 20%; margin-top:10px;margin-bottom:30px")
+
+                         ),
+           #### Ethnicity Data #####     
+                tabPanel("Ethnicity Data",
+                         
+                         h2("Examining the Various Ethnic Backgrounds",
+                            style = "text-align: left; font-style: bold; font-size: 40px"),
+                        
+                         p("Below are ways of selecting various regions in the North Island to examine the prevalence of ethnic groups over time. The table allows you to look at the specific values for a specific year, while the plot shows how things have changed over time.",
+                           style = "margin-top: 30px; margin-bottom:30px"),
+                         
+                         fluidRow(column(8,
+                                         selectInput("eth_place", "Places",
+                                                     choices = ethnicity$`Area_description`)
+                                          ),
+                         column(4,
+                                selectInput("eth_year", "Year",
+                                            choices = ethnicity$`Year`)
+                                )
+                          ),
+                         tableOutput("eth_table"),
+                         
+                         plotOutput("eth_plot"),
+                         hr(style = "text-align:center; border-top: 3px solid black; width: 95%;margin-top:30px;margin-bottom:40px")
+                         
+                ),
+                
+          ##### Expat Data ########
+                tabPanel("Expatriate Data",
+                         h2("How Many Expatriates Are in North Island?",
+                            style = "text-align: left; font-style: bold; font-size: 40px"),
+                         
+                         p("Below are ways of selecting various regions in the North Island to examine expatriate information to examine the number of people born overseas and how long they have been in New Zealand . The table allows you to look at the specific values for a specific year, while the plot shows how things have changed over time.",
+                           style = "margin-top: 30px; margin-bottom:30px"),
+                         fluidRow(column(8,
+                                         selectInput("exp_place", "Places",
+                                                     choices = expat$`Area_description`)
+                         ),
+                         column(4,
+                                selectInput("exp_year", "Census Year",
+                                            choices = expat$`Year`),
+                         )
+                         ),
+                         tableOutput("exp_table"),
+                         
+                         plotOutput("exp_plot"),
+                         hr(style = "text-align:center; border-top: 3px solid black; width: 95%;margin-top:30px;margin-bottom:40px")
+
+                    ),
+                
+                #### Maori Data #####
+                
+                tabPanel("Maori Data",
+                         h2("The Indigenous People of North Island",
+                            style = "text-align: left; font-style: bold; font-size: 40px"),
+                         
+                         p("Below are ways of selecting various regions in the North Island to compare the Maori population with the Non-Maori population. The table allows you to look at the specific values for a specific year, while the plot shows how things have changed over time.",
+                           style = "margin-top: 30px; margin-bottom:30px"),
+                         
+                         
+                         fluidRow(column(8,
+                                         selectInput("maori_place", "Places",
+                                                     choices = maori$`Area_description`)
+                         ),
+                         column(4,
+                                selectInput("maori_year", "Year",
+                                            choices = maori$`Year`)
+                         )
+                         ),
+                         
+                         tableOutput("maori_table"),
+                         
+                         plotOutput("maori_plot"),
+                         hr(style = "text-align:center; border-top: 3px solid black; width: 95%;margin-top:30px;margin-bottom:30px")
+
+                         ),
+          
+          ##### Religion #####
+                tabPanel("Religion",
+                         h2('What are the predominant religions and beliefs?',
+                            style = "text-align: left; font-style: bold; font-size: 40px"),
+                         
+                         fluidRow(column(8,
+                                         selectInput("rel_place", "Places",
+                                                     choices = religion$`Area_description`)
+                         ),
+                         column(4,
+                                selectInput("rel_year", "Year",
+                                            choices = religion$`Year`)
+                         )
+                         ),
+                         tableOutput("rel_table"),
+                         plotOutput("rel_plot"),
+                         hr(style = "text-align:center; border-top: 3px solid black; width: 95%;margin-top:30px;margin-bottom:30px")
+                  
+                      )
+                
+                  )
               ),
     
-    #### Ethnicity #####
-    
-    nav_panel("Ethnicity",
-              "Ethnicity Data",
-              
-              fluidRow(column(8,
-                              selectInput("eth_place", "Places",
-                                          choices = ethnicity$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("eth_year", "Year",
-                                          choices = ethnicity$`Year`)
-                              )
-                       ),
-              tableOutput("eth_table"),
-              
-              plotOutput("eth_plot")
-              ),
-    
-    #### Expat #####
-    nav_panel("Expats", 
-              "Information on Expats in North Island",
-              
-              fluidRow(column(8,
-                              selectInput("exp_place", "Places",
-                                          choices = expat$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("exp_year", "Census Year",
-                                          choices = expat$`Year`),
-                              )
-                       ),
-              tableOutput("exp_table"),
-              
-              plotOutput("exp_plot")
-              
-              ),
+ 
     
     
     #### Housing #####
-    nav_panel("Housing",
-              "Examining Housing Data",
+    nav_panel("Living Information",
               
-              fluidRow(column(8,
-                              selectInput("house_place", "Places", 
-                                          choices = house$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("house_year", "Year",
-                                          choices = house$`Year`)
-                              )
-                       ),
-              
-              tableOutput("house_table"),
-              
-              plotOutput("house_plot")
-              
-              
+              h2("What is employment and housing like in North Island?",
+                 style = "text-align: left; font-style: bold; font-size: 40px; top-margin: 30px; bottom-margin:40px"),
+              tags$figure(
+                class = "centerFigure",
+                tags$img(
+                  src = "Auckland2.jpg",
+                  width = 600,
+                  alt = "Auckland at night"
+                ),
+                tags$figcaption("Auckland city at night by New Zealand Tourism Group"),
+                style = "text-align:center; bottom-margin: 40px"
               ),
-    
-    
-    ### Income ##
-    nav_panel("Income", 
-              "How much are people making?",
+              p("Below are three ways of examining life in the North Island. You are able to look at housing descriptions, the income distribution, and the types employment people have.",
+                style = "top-margin: 20px; bottom-margin: 30px"),
               
-              fluidRow(column(8,
-                              selectInput("inc_place", "Places",
-                                          choices = income$`Area_description`)
-                              )
-
-                       ),
-              tableOutput("inc_table"),
               
-              plotOutput("inc_plot")
-              ),
-    #### Job ####
-    nav_panel("Jobs", 
-              "What is the work life",
-              
-              fluidRow(column(8,
-                              selectInput("job_place", "Places",
-                                          choices = job$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("job_year", "Year",
-                                          choices = job$`Year`)
-                              )
+              accordion(
                 
-              ),
-              
-              tableOutput("job_table"),
-              
-              plotOutput("job_plot")
-              ),
-    
-    ##### Maori #####
-    nav_panel("Maori", 
-              "The Indigenous People of North Island",
-              
-              fluidRow(column(8,
-                              selectInput("maori_place", "Places",
-                                          choices = maori$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("maori_year", "Year",
-                                          choices = maori$`Year`)
-                              )
-                       ),
-              
-              tableOutput("maori_table"),
-              
-              plotOutput("maori_plot")
-              ),
-  
-    #### Religion ####
-    nav_panel("Religion",
-              'What do people believe in?',
-              
-              fluidRow(column(8,
-                              selectInput("rel_place", "Places",
-                                          choices = religion$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("rel_year", "Year",
-                                          choices = religion$`Year`)
-                              )
-                       ),
-              tableOutput("rel_table"),
-              
-              plotOutput("rel_plot")
-              ),
+                #### Housing #####
+                accordion_panel(
+                  title = "Examining Housing Data",
+                  icon = bsicons::bs_icon("menu-app"),
+                  "Examining Housing Data",
+
+                  fluidRow(column(8,
+                                  selectInput("house_place", "Places",
+                                              choices = house$`Area_description`)
+                  ),
+                  column(4,
+                         selectInput("house_year", "Year",
+                                     choices = house$`Year`)
+                  )
+                  ),
+
+                  tableOutput("house_table"),
+
+                  plotOutput("house_plot"),
+                  hr(style = "text-align:center; border-top: 1px solid black; width: 95%;margin-top:10px;margin-bottom:10px")
+                ),
+                
+                ##### Income #####
+                accordion_panel(
+                  title = "Incomes",
+                  icon = bsicons::bs_icon("bar-chart"),
+                  "How much are people making?",
+
+                  fluidRow(column(8,
+                                  selectInput("inc_place", "Places",
+                                              choices = income$`Area_description`)
+                      )
+                  ),
+                  tableOutput("inc_table"),
+
+                  plotOutput("inc_plot"),
+                  hr(style = "text-align:center; border-top: 1px solid black; width: 95%;margin-top:10px;margin-bottom:10px")
+                  
+                ),
+                
+                ###### Job #####
+                accordion_panel(
+                  title = "Employment",
+                  icon = bsicons::bs_icon("calendar-date"),
+                  "What is the work life",
+
+                  fluidRow(column(8,
+                                  selectInput("job_place", "Places",
+                                              choices = job$`Area_description`)
+                  ),
+                  column(4,
+                         selectInput("job_year", "Year",
+                                     choices = job$`Year`)
+                  )
+
+                  ),
+
+                  tableOutput("job_table"),
+
+                  plotOutput("job_plot"),
+                  hr(style = "text-align:center; border-top: 1px solid black; width: 95%;margin-top:10px;margin-bottom:10px")
+
+                ),
+                id = "acc",
+                open = "Examining Housing Data"
+              ) 
+            ),
     
     
     ##### Smoking ####
-    nav_panel("Smoking", 
-              "How prevalent is smoking?",
+    nav_panel("Smoking",
+              h2("How prevalent is smoking?",
+                 style = "text-align: left; font-style: bold; font-size: 40px; margin-top: 20px; margin-bottom:40px"
+              ),
               
-              fluidRow(column(8,
-                              selectInput("smoking_place", "Places",
-                                          choices = smoking$`Area_description`)
-                              ),
-                       column(4,
-                              selectInput("smoking_year", "Year",
-                                          choices = smoking$`Year`)
-                              )
-                       ),
+              fluidRow(
+                layout_columns(
+                  card(
+                    card_header("Area"),
+                    selectInput("smoking_place", "Places",
+                                choices = smoking$`Area_description`)
+                    
+                    
+                  ),
+                  card(
+                    card_header("Year"),
+                    selectInput("smoking_year", "Year",
+                                choices = smoking$`Year`)
+                    
+                  )
+                )
+              ),
+                       
               tableOutput("smoking_table"),
               
-              plotOutput("smoking_plot")
+              plotOutput("smoking_plot"),
+              hr(style = "border-top: 1px solid black; text-align:center; width: 80%; margin-top:20px;margin-bottom:30px")
               
-              ),
+          ),
     
     ##### Transportation #####
     nav_panel("Transportation",
-              "Getting from point A to B",
+              h2("How do North Islanders commute?",
+                 style = "margin-top: 10px; text-align-left; font-style: bold; font-size: 40px; margin-bottom: 25px"),
               
-              fluidRow(column(8,
+              fluidRow(
+                layout_columns(
+                  card("Region in North Island",
+                       layout_columns(
+                         card("",
                               selectInput("tran_place", "Places",
                                           choices = transport$Area_description)
-                              )
-                       ),
+                              ),
+                         card("Depending on wether the region is urban or rural the means of travel will vary.")
+                       )
+                    )
+                )
+                  
+              ),
               tableOutput("tran_table"),
               
-              plotOutput("tran_plot")
-
+              plotOutput("tran_plot"),
+              hr(style = "border-top: 1px solid black; text-align:center; width: 80%; margin-top:20px;margin-bottom:30px")
+              
               ),
     
+
+      nav_panel("Citations",
+              h2("References",
+              style = "margin-top: 10px; text-align-left; font-style: bold; font-size: 40px; margin-bottom: 25px"),
+              
+              p("For coding:",
+                style = "font-style: bold; font-size: 17px"),
+              a("stackoverflow", href = "https://stackoverflow.com/questions/74334647/how-to-adjust-line-spacing-in-r-shiny"),
+              p(),
+              a("Building Shiny apps the BOAST way", href = "https://educationshinyappteam.github.io/Style_Guide/staticImages.html"),
+              p(),
+              a("Geeks for Geeks", href = "https://www.geeksforgeeks.org/how-to-read-many-files-in-r-with-loop/"),
+              p(),
+              a("Steve's Data Tips and Tricks", href = "https://www.spsanderson.com/steveondata/posts/2024-06-07/"),
+              p(),
+              a("Shiny Layouts", href = "https://shiny.posit.co/r/layouts/"),
+              p(),
+              a("Mastering Shiny in R", href = "https://mastering-shiny.org/basic-case-study.html"),
+              
+              p("For North Island Information:",
+                style = "margin-top: 40px; font-style: bold; font-size: 15px, margin-bottom:20px"),
+              a("New Zealand Census", href = "https://www.stats.govt.nz/2018-census/"),
+              p(),
+              a("NZ Tourism", href = "https://www.nz-tourism.com/list-of-new-zealand-regions/"),
+              p(),
+              a("Distant Journeys", href = "https://www.distantjourneys.co.uk/blog/ten-interesting-facts-auckland/"),
+              p(),
+              a("My Guide Wellington", href = "https://www.myguidewellington.com/usefulinfo/wellington-interesting-facts"),
+              p(),
+              a("Endace", href = "https://www.endace.com/assets/files/careers/hamiltonfactsheet.pdf"),
+              p(),
+              a("InterNations", href = "https://www.internations.org/new-zealand-expats/guide/living")
+              
+              ), 
     
-    nav_menu( 
-      "Other links", 
-      nav_panel("D", "Panel D content"), 
-      "----", 
-      "Description:", 
-      nav_item( 
-        a("Shiny", href = "https://shiny.posit.co", target = "_blank") 
-      ), 
     ), 
-  ), 
   id = "tab" 
 )
 
