@@ -1,1 +1,1 @@
-All the files are in the web app folder.
+All the files including the official README are in the island_web_app folder.
